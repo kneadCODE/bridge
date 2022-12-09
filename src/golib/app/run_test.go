@@ -19,12 +19,12 @@ func TestRun(t *testing.T) {
 
 	var sigTerm os.Signal = syscall.SIGTERM
 
-	type arg struct {
+	type testCase struct {
 		s1Err   bool
 		s2Err   bool
 		exitSig *os.Signal
 	}
-	tcs := map[string]arg{
+	tcs := map[string]testCase{
 		"all ok, sigkill sent": {
 			exitSig: &os.Kill,
 		},
@@ -43,6 +43,7 @@ func TestRun(t *testing.T) {
 	}
 	for desc, tc := range tcs {
 		t.Run(desc, func(t *testing.T) {
+			// Given:
 			exitChan := make(chan os.Signal, 1)
 			exitSignalFunc = func() <-chan os.Signal {
 				return exitChan
@@ -79,7 +80,8 @@ func TestRun(t *testing.T) {
 				}
 			}
 
-			wg := sync.WaitGroup{}
+			// When:
+			var wg sync.WaitGroup
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
@@ -88,6 +90,7 @@ func TestRun(t *testing.T) {
 
 			time.Sleep(500 * time.Millisecond)
 
+			// Then:
 			if tc.exitSig != nil {
 				exitChan <- *tc.exitSig
 			}

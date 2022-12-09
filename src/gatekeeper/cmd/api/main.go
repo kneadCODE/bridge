@@ -1,25 +1,47 @@
+// Binary API
 package main
 
 import (
 	"context"
-	"errors"
+	"net/http"
 	"os"
-	"time"
 
 	"github.com/kneadCODE/bridge/src/golib/app"
+	"github.com/kneadCODE/bridge/src/golib/httpsrv"
 	"golang.org/x/exp/slog"
 )
 
 func main() {
-	ctx := context.Background()
-
 	logger := slog.New(slog.NewTextHandler(os.Stdout))
-	ctx = slog.NewContext(ctx, logger)
+	logger.Info("Initializing app")
 
-	logger.Info("API Initialized")
+	slog.SetDefault(logger)
 
-	app.Run(ctx, func(ctx context.Context) error {
-		time.Sleep(5 * time.Second)
-		return errors.New("some err")
-	})
+	ctx := slog.NewContext(context.Background(), logger)
+
+	srv, err := initServer(ctx)
+	if err != nil {
+		logger.Error("Init server failed", err)
+		os.Exit(1)
+	}
+
+	logger.Info("App initialized")
+
+	app.Run(
+		ctx,
+		srv.Start,
+	)
+}
+
+func initServer(context.Context) (*httpsrv.Server, error) {
+	srv, err := httpsrv.New(handler())
+	if err != nil {
+		return nil, err
+	}
+
+	return srv, nil
+}
+
+func handler() http.Handler {
+	return nil
 }
