@@ -1,3 +1,4 @@
+// Package app contains the App configuration
 package app
 
 import (
@@ -18,7 +19,7 @@ func Run(ctx context.Context, services ...service) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	wg := sync.WaitGroup{}
+	var wg sync.WaitGroup
 	wg.Add(len(services))
 
 	logger.Info("Starting all services")
