@@ -1,0 +1,15 @@
+version: '3.8'
+services:
+  api:
+    image: golang:1.19
+    container_name: bridge-gatekeeper-api
+    volumes:
+      - ./:/app/
+    working_dir: /app/
+    networks:
+      - main
+    ports:
+      - "9000:9000"
+networks:
+  main:
+    name: bridge-gatekeeper
