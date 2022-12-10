@@ -4,6 +4,7 @@ package httpsrv
 import (
 	"context"
 	"fmt"
+	"net"
 	"net/http"
 	"time"
 
@@ -11,7 +12,7 @@ import (
 )
 
 // New returns a new instance of Server.
-func New(router Router, options ...ServerOption) (*Server, error) {
+func New(ctx context.Context, router Router, options ...ServerOption) (*Server, error) {
 	s := &Server{
 		srv: &http.Server{
 			Addr:         ":9000",
@@ -19,8 +20,9 @@ func New(router Router, options ...ServerOption) (*Server, error) {
 			ReadTimeout:  5 * time.Second,
 			WriteTimeout: 10 * time.Second,
 			IdleTimeout:  120 * time.Second,
-			BaseContext:  nil, // TODO: Look into this.
-			ConnContext:  nil, // TODO: Look into this.
+			BaseContext: func(net.Listener) context.Context {
+				return slog.NewContext(context.Background(), slog.FromContext(ctx))
+			},
 		},
 		gracefulShutdownTimeout: 10 * time.Second,
 	}
@@ -47,7 +49,7 @@ func (s *Server) Start(ctx context.Context) error {
 	startErrChan := make(chan error, 1)
 
 	go func() {
-		logger.Info(fmt.Sprintf("Starting HTTP server on [%s]", s.srv.Addr))
+		logger.LogAttrs(slog.InfoLevel, fmt.Sprintf("Starting HTTP server on [%s]", s.srv.Addr))
 		startErrChan <- s.srv.ListenAndServe()
 	}()
 
@@ -68,18 +70,18 @@ func (s *Server) stop(logger *slog.Logger) error {
 	ctx, cancel := context.WithTimeout(context.Background(), s.gracefulShutdownTimeout) // Cannot rely on root context as that might have been cancelled.
 	defer cancel()
 
-	logger.Info("Attempting HTTP server graceful shutdown")
+	logger.LogAttrs(slog.InfoLevel, "Attempting HTTP server graceful shutdown")
 	if err := s.srv.Shutdown(ctx); err != nil {
 		logger.Error("HTTP server graceful shutdown failed", err)
 
-		logger.Info("Attempting HTTP server force shutdown")
+		logger.LogAttrs(slog.InfoLevel, "Attempting HTTP server force shutdown")
 		if err = s.srv.Close(); err != nil {
 			logger.Error("HTTP server graceful shutdown failed", err)
 			return err
 		}
 	}
 
-	logger.Info("HTTP server shutdown complete")
+	logger.LogAttrs(slog.InfoLevel, "HTTP server shutdown complete")
 
 	return nil
 }

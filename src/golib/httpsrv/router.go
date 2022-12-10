@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/pprof"
+	"time"
 
 	"github.com/go-chi/chi/v5"
+	"golang.org/x/exp/slog"
 )
 
 // Router defines the routes for the server
@@ -47,16 +49,75 @@ func (rt Router) Handler() chi.Router {
 	}
 
 	rtr.Group(func(r chi.Router) {
-		// TODO: Add Middlewares
+		r.Use(baseMiddleware())
 
 		if rt.GQLHandler != nil {
-			rtr.Handle("/graph", rt.GQLHandler)
+			r.Handle("/graph", rt.GQLHandler)
 		}
 
 		if rt.CustomRESTRoutes != nil {
-			rtr.Group(rt.CustomRESTRoutes)
+			r.Group(rt.CustomRESTRoutes)
 		}
 	})
 
 	return rtr
+}
+
+func baseMiddleware() func(handler http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			start := time.Now()
+
+			logger := slog.FromContext(r.Context())
+
+			logger = logger.With(
+				slog.String("http.req.method", r.Method),
+				slog.String("http.req.path", r.URL.Path),
+				slog.String("http.req.host", r.URL.Host),
+				slog.String("http.req.user-agent", r.UserAgent()),
+				slog.String("http.req.referer", r.Referer()),
+				slog.String("http.req.remote_addr", r.RemoteAddr),
+			)
+
+			rw := &respWriter{ResponseWriter: w}
+
+			logger.LogAttrs(slog.InfoLevel,
+				"START HTTP Request",
+				slog.Int64("http.req.content-length", r.ContentLength),
+				slog.String("http.req.content-type", r.Header.Get("Content-Type")),
+				slog.String("http.req.proto", r.Proto),
+				slog.Time("http.req.start", start),
+			)
+
+			processStart := time.Now()
+			next.ServeHTTP(w, r)
+
+			logger.LogAttrs(slog.InfoLevel,
+				"END HTTP Request",
+				slog.Time("http.resp.end", time.Now()),
+				slog.String("http.resp.duration", fmt.Sprintf("%dms", time.Since(start).Milliseconds())),
+				slog.String("http.resp.processing_duration", fmt.Sprintf("%dms", time.Since(processStart).Milliseconds())),
+				slog.Int("http.resp.bytes", rw.contentLength),
+				slog.Int("http.resp.status_code", rw.statusCode),
+			)
+		})
+	}
+}
+
+type respWriter struct {
+	http.ResponseWriter
+
+	statusCode    int
+	contentLength int
+}
+
+func (w *respWriter) Write(b []byte) (int, error) {
+	length, err := w.ResponseWriter.Write(b)
+	w.contentLength = length
+	return length, err
+}
+
+func (w *respWriter) WriteHeader(statusCode int) {
+	w.statusCode = statusCode
+	w.ResponseWriter.WriteHeader(statusCode)
 }

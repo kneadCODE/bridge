@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestRun(t *testing.T) {
+func TestConfig_Run(t *testing.T) {
 	defer func() {
 		exitSignalFunc = exitSignal
 	}()
@@ -85,7 +85,7 @@ func TestRun(t *testing.T) {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				Run(context.Background(), s1, s2)
+				Config{}.Run(context.Background(), s1, s2)
 			}()
 
 			time.Sleep(500 * time.Millisecond)
