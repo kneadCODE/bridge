@@ -10,6 +10,11 @@ services:
       - main
     ports:
       - "9000:9000"
+    environment:
+      APP_NAME: gatekeeper
+      APP_ENV: dev
+      APP_VERSION: v0.0.0
+      APP_SERVER: local
 networks:
   main:
     name: bridge-gatekeeper

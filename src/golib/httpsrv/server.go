@@ -4,6 +4,7 @@ package httpsrv
 import (
 	"context"
 	"fmt"
+	"net"
 	"net/http"
 	"time"
 
@@ -11,7 +12,7 @@ import (
 )
 
 // New returns a new instance of Server.
-func New(router Router, options ...ServerOption) (*Server, error) {
+func New(ctx context.Context, router Router, options ...ServerOption) (*Server, error) {
 	s := &Server{
 		srv: &http.Server{
 			Addr:         ":9000",
@@ -19,8 +20,9 @@ func New(router Router, options ...ServerOption) (*Server, error) {
 			ReadTimeout:  5 * time.Second,
 			WriteTimeout: 10 * time.Second,
 			IdleTimeout:  120 * time.Second,
-			BaseContext:  nil, // TODO: Look into this.
-			ConnContext:  nil, // TODO: Look into this.
+			BaseContext: func(net.Listener) context.Context {
+				return slog.NewContext(context.Background(), slog.FromContext(ctx))
+			},
 		},
 		gracefulShutdownTimeout: 10 * time.Second,
 	}

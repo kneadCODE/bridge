@@ -14,8 +14,19 @@ func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout))
 	logger.LogAttrs(slog.InfoLevel, "Initializing app")
 
-	slog.SetDefault(logger)
+	appCfg := app.Config{
+		Name:        os.Getenv("APP_NAME"),
+		Environment: app.Env(os.Getenv("APP_ENV")),
+		Version:     os.Getenv("APP_VERSION"),
+		Server:      os.Getenv("APP_SERVER"),
+	}
+	if err := appCfg.IsValid(); err != nil {
+		logger.Error("Init app config failed", err)
+		os.Exit(1)
+	}
 
+	logger = appCfg.EnrichLogger(logger)
+	slog.SetDefault(logger)
 	ctx := slog.NewContext(context.Background(), logger)
 
 	srv, err := initServer(ctx)
@@ -26,7 +37,7 @@ func main() {
 
 	logger.LogAttrs(slog.InfoLevel, "App initialized")
 
-	app.Run(
+	appCfg.Run(
 		ctx,
 		srv.Start,
 	)

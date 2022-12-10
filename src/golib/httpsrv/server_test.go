@@ -47,7 +47,7 @@ func TestNew(t *testing.T) {
 	for desc, tc := range tcs {
 		t.Run(desc, func(t *testing.T) {
 			// Given && When:
-			srv, err := New(rtr, tc.givenOpts...)
+			srv, err := New(context.Background(), rtr, tc.givenOpts...)
 
 			// Then:
 			require.Equal(t, tc.expErr, err)
@@ -58,8 +58,8 @@ func TestNew(t *testing.T) {
 				require.EqualValues(t, tc.expSrv.srv.WriteTimeout, srv.srv.WriteTimeout)
 				require.EqualValues(t, tc.expSrv.srv.MaxHeaderBytes, srv.srv.MaxHeaderBytes)
 				require.EqualValues(t, tc.expSrv.srv.ErrorLog, srv.srv.ErrorLog)
-				require.EqualValues(t, tc.expSrv.srv.BaseContext, srv.srv.BaseContext)
-				require.EqualValues(t, tc.expSrv.srv.ConnContext, srv.srv.ConnContext)
+				require.NotNil(t, srv.srv.BaseContext)
+				require.Nil(t, srv.srv.ConnContext)
 				require.EqualValues(t, tc.expSrv.gracefulShutdownTimeout, srv.gracefulShutdownTimeout)
 			} else {
 				require.Nil(t, srv)
@@ -70,7 +70,7 @@ func TestNew(t *testing.T) {
 
 func TestServer_Start(t *testing.T) {
 	// Given:
-	srv, err := New(Router{})
+	srv, err := New(context.Background(), Router{})
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())

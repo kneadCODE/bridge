@@ -13,7 +13,7 @@ import (
 )
 
 // Run runs the various services and listens to exit signals to terminate all the services.
-func Run(ctx context.Context, services ...service) {
+func (Config) Run(ctx context.Context, services ...service) {
 	logger := slog.FromContext(ctx)
 
 	ctx, cancel := context.WithCancel(ctx)
