@@ -2,6 +2,7 @@ package httpsrv
 
 import (
 	"net/http"
+	"net/http/httptest"
 	"sort"
 	"testing"
 
@@ -126,4 +127,86 @@ func TestRouter_Handler(t *testing.T) {
 			require.Equal(t, tc.expRoutes, routesFound)
 		})
 	}
+}
+
+func TestBaseMiddleware(t *testing.T) {
+	// Given:
+	rtr := Router{
+		CustomRESTRoutes: func(r chi.Router) {
+			r.Get("/get", func(http.ResponseWriter, *http.Request) {})
+		},
+	}
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/get", nil)
+
+	// When && Then: // Don't crash
+	rtr.Handler().ServeHTTP(w, r)
+
+	// Right now unable to test the slog.fields. TODO: Look into how to verify what log fields were recorded.
+}
+
+func TestResponseWriter(t *testing.T) {
+	// Given:
+	rw := respWriter{ResponseWriter: httptest.NewRecorder()}
+	// When:
+	rw.WriteHeader(http.StatusOK)
+	// Then:
+	require.Equal(t, http.StatusOK, rw.statusCode)
+	require.Equal(t, 0, rw.contentLength)
+
+	// Given:
+	rw = respWriter{ResponseWriter: httptest.NewRecorder()}
+	// When:
+	rw.WriteHeader(http.StatusInternalServerError)
+	// Then:
+	require.Equal(t, http.StatusInternalServerError, rw.statusCode)
+	require.Equal(t, 0, rw.contentLength)
+
+	// Given && When:
+	rw = respWriter{ResponseWriter: httptest.NewRecorder()}
+	// Then:
+	require.Equal(t, 0, rw.statusCode)
+	require.Equal(t, 0, rw.contentLength)
+
+	// Given:
+	rw = respWriter{ResponseWriter: httptest.NewRecorder()}
+	// When:
+	l, err := rw.Write([]byte("hello"))
+	// Then:
+	require.Equal(t, 0, rw.statusCode)
+	require.Equal(t, l, rw.contentLength)
+	require.Equal(t, len("hello"), rw.contentLength)
+	require.NoError(t, err)
+
+	// Given:
+	rw = respWriter{ResponseWriter: httptest.NewRecorder()}
+	// When:
+	l, err = rw.Write([]byte("hello hello hello hello hello"))
+	// Then:
+	require.Equal(t, 0, rw.statusCode)
+	require.Equal(t, l, rw.contentLength)
+	require.Equal(t, len("hello hello hello hello hello"), rw.contentLength)
+	require.NoError(t, err)
+
+	// Given:
+	rw = respWriter{ResponseWriter: httptest.NewRecorder()}
+	// When:
+	rw.WriteHeader(http.StatusOK)
+	l, err = rw.Write([]byte("hello"))
+	// Then:
+	require.Equal(t, http.StatusOK, rw.statusCode)
+	require.Equal(t, l, rw.contentLength)
+	require.Equal(t, len("hello"), rw.contentLength)
+	require.NoError(t, err)
+
+	// Given:
+	rw = respWriter{ResponseWriter: httptest.NewRecorder()}
+	// When:
+	rw.WriteHeader(http.StatusInternalServerError)
+	l, err = rw.Write([]byte("hello"))
+	// Then:
+	require.Equal(t, http.StatusInternalServerError, rw.statusCode)
+	require.Equal(t, l, rw.contentLength)
+	require.Equal(t, len("hello"), rw.contentLength)
+	require.NoError(t, err)
 }

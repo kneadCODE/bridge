@@ -1,5 +1,7 @@
+// Package app contains the App configuration
 package app
 
+// Env indicates the environment in which the app is running
 type Env string
 
 const (

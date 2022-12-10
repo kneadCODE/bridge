@@ -43,8 +43,8 @@ func main() {
 	)
 }
 
-func initServer(context.Context) (*httpsrv.Server, error) {
-	srv, err := httpsrv.New(router())
+func initServer(ctx context.Context) (*httpsrv.Server, error) {
+	srv, err := httpsrv.New(ctx, router())
 	if err != nil {
 		return nil, err
 	}

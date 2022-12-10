@@ -1,3 +1,4 @@
+// Package app contains the App configuration
 package app
 
 import (
