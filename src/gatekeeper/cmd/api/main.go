@@ -3,7 +3,6 @@ package main
 
 import (
 	"context"
-	"net/http"
 	"os"
 
 	"github.com/kneadCODE/bridge/src/golib/app"
@@ -34,14 +33,10 @@ func main() {
 }
 
 func initServer(context.Context) (*httpsrv.Server, error) {
-	srv, err := httpsrv.New(handler())
+	srv, err := httpsrv.New(router())
 	if err != nil {
 		return nil, err
 	}
 
 	return srv, nil
-}
-
-func handler() http.Handler {
-	return nil
 }

@@ -7,7 +7,10 @@ require (
 	golang.org/x/exp v0.0.0-20221208152030-732eee02a75a
 )
 
-require github.com/stretchr/testify v1.8.1 // indirect
+require (
+	github.com/go-chi/chi/v5 v5.0.8 // indirect
+	github.com/stretchr/testify v1.8.1 // indirect
+)
 
 replace (
 	github.com/kneadCODE/bridge/src/golib v0.0.0 => ../golib

@@ -3,6 +3,7 @@ module github.com/kneadCODE/bridge/src/golib
 go 1.19
 
 require (
+	github.com/go-chi/chi/v5 v5.0.8
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/exp v0.0.0-20221208152030-732eee02a75a
 )
