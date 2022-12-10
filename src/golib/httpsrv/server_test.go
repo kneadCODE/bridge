@@ -11,6 +11,7 @@ import (
 )
 
 func TestNew(t *testing.T) {
+	rtr := Router{}
 	type testCase struct {
 		givenOpts []ServerOption
 		expErr    error
@@ -20,6 +21,7 @@ func TestNew(t *testing.T) {
 		"default": {
 			expSrv: &Server{
 				srv: &http.Server{
+					Handler:      rtr.Handler(),
 					Addr:         ":9000",
 					ReadTimeout:  5 * time.Second,
 					WriteTimeout: 10 * time.Second,
@@ -32,6 +34,7 @@ func TestNew(t *testing.T) {
 			givenOpts: []ServerOption{ServerPort(3000)},
 			expSrv: &Server{
 				srv: &http.Server{
+					Handler:      rtr.Handler(),
 					Addr:         ":3000",
 					ReadTimeout:  5 * time.Second,
 					WriteTimeout: 10 * time.Second,
@@ -44,12 +47,19 @@ func TestNew(t *testing.T) {
 	for desc, tc := range tcs {
 		t.Run(desc, func(t *testing.T) {
 			// Given && When:
-			srv, err := New(nil, tc.givenOpts...)
+			srv, err := New(rtr, tc.givenOpts...)
 
 			// Then:
 			require.Equal(t, tc.expErr, err)
 			if tc.expSrv != nil {
-				require.EqualValues(t, tc.expSrv.srv, srv.srv)
+				require.EqualValues(t, tc.expSrv.srv.Addr, srv.srv.Addr)
+				require.EqualValues(t, tc.expSrv.srv.ReadTimeout, srv.srv.ReadTimeout)
+				require.EqualValues(t, tc.expSrv.srv.ReadHeaderTimeout, srv.srv.ReadHeaderTimeout)
+				require.EqualValues(t, tc.expSrv.srv.WriteTimeout, srv.srv.WriteTimeout)
+				require.EqualValues(t, tc.expSrv.srv.MaxHeaderBytes, srv.srv.MaxHeaderBytes)
+				require.EqualValues(t, tc.expSrv.srv.ErrorLog, srv.srv.ErrorLog)
+				require.EqualValues(t, tc.expSrv.srv.BaseContext, srv.srv.BaseContext)
+				require.EqualValues(t, tc.expSrv.srv.ConnContext, srv.srv.ConnContext)
 				require.EqualValues(t, tc.expSrv.gracefulShutdownTimeout, srv.gracefulShutdownTimeout)
 			} else {
 				require.Nil(t, srv)
@@ -60,7 +70,7 @@ func TestNew(t *testing.T) {
 
 func TestServer_Start(t *testing.T) {
 	// Given:
-	srv, err := New(nil)
+	srv, err := New(Router{})
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())

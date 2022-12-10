@@ -11,11 +11,11 @@ import (
 )
 
 // New returns a new instance of Server.
-func New(handler http.Handler, options ...ServerOption) (*Server, error) {
+func New(router Router, options ...ServerOption) (*Server, error) {
 	s := &Server{
 		srv: &http.Server{
 			Addr:         ":9000",
-			Handler:      handler,
+			Handler:      router.Handler(),
 			ReadTimeout:  5 * time.Second,
 			WriteTimeout: 10 * time.Second,
 			IdleTimeout:  120 * time.Second,
@@ -47,7 +47,7 @@ func (s *Server) Start(ctx context.Context) error {
 	startErrChan := make(chan error, 1)
 
 	go func() {
-		logger.Info(fmt.Sprintf("Starting Server on [%s]", s.srv.Addr))
+		logger.Info(fmt.Sprintf("Starting HTTP server on [%s]", s.srv.Addr))
 		startErrChan <- s.srv.ListenAndServe()
 	}()
 
@@ -57,7 +57,7 @@ func (s *Server) Start(ctx context.Context) error {
 			return s.stop(logger)
 		case err := <-startErrChan:
 			if err != http.ErrServerClosed {
-				return fmt.Errorf("server startup failed: %w", err)
+				return fmt.Errorf("http server startup failed: %w", err)
 			}
 			return nil
 		}
@@ -68,18 +68,18 @@ func (s *Server) stop(logger *slog.Logger) error {
 	ctx, cancel := context.WithTimeout(context.Background(), s.gracefulShutdownTimeout) // Cannot rely on root context as that might have been cancelled.
 	defer cancel()
 
-	logger.Info("Attempting server graceful shutdown")
+	logger.Info("Attempting HTTP server graceful shutdown")
 	if err := s.srv.Shutdown(ctx); err != nil {
-		logger.Error("Server graceful shutdown failed", err)
+		logger.Error("HTTP server graceful shutdown failed", err)
 
-		logger.Info("Attempting server force shutdown")
+		logger.Info("Attempting HTTP server force shutdown")
 		if err = s.srv.Close(); err != nil {
-			logger.Error("Server graceful shutdown failed", err)
+			logger.Error("HTTP server graceful shutdown failed", err)
 			return err
 		}
 	}
 
-	logger.Info("Server shutdown complete")
+	logger.Info("HTTP server shutdown complete")
 
 	return nil
 }
