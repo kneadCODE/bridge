@@ -1,0 +1,5 @@
+vendor/
+api.Dockerfile
+c.out
+docker-compose.yaml
+Makefile
