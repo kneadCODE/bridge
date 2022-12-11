@@ -1,3 +1,4 @@
+// Package gql contains GraphQL related code
 package graph
 
 import (
@@ -11,6 +12,10 @@ type gqlError struct {
 	*gqlerror.Error
 	cause error // ok to be nil
 }
+
+var (
+	_ error = &gqlError{}
+)
 
 // ConvertError converts the given error into graphql error
 func ConvertError(ctx context.Context, code, message string, err error) error {
