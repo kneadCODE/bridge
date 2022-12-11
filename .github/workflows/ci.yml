@@ -45,6 +45,7 @@ jobs:
         tags: type=sha
         labels: |
           org.opencontainers.image.title=gatekeeper
+          org.opencontainers.image.source=https://github.com/${{ github.repository }}/src/gatekeeper
     - name: Build and push Docker image
       uses: docker/build-push-action@v3
       with:
