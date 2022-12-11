@@ -49,12 +49,12 @@ func TestConfig_IsValid(t *testing.T) {
 		},
 		"name too long": {
 			givenCfg: Config{
-				Name:        "abcdefghijkl",
+				Name:        "abcdefghijklmnoqprstuvwxyz",
 				Environment: EnvProd,
 				Version:     "v123",
 				Server:      "server",
 			},
-			expErr: fmt.Errorf("invalid name: [abcdefghijkl], %w", ErrInvalidConfig),
+			expErr: fmt.Errorf("invalid name: [abcdefghijklmnoqprstuvwxyz], %w", ErrInvalidConfig),
 		},
 		"no version": {
 			givenCfg: Config{

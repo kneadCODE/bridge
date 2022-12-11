@@ -1,0 +1,35 @@
+version: '3.8'
+networks:
+  main:
+    name: bridge-local
+services:
+  golib:
+    image: golang:1.19-alpine
+    container_name: bridge-golib
+    volumes:
+      - ../src/golib:/src/golib
+    working_dir: /src/golib
+    networks:
+      - main
+    environment:
+      CGO_ENABLED: 0
+      GOARCH: amd64
+      GOOS: linux
+  gatekeeper-api:
+    image: golang:1.19-alpine
+    container_name: bridge-gatekeeper-api
+    volumes:
+      - ../src/:/src/
+    working_dir: /src/gatekeeper
+    networks:
+      - main
+    ports:
+      - "9000:9000"
+    environment:
+      CGO_ENABLED: 0
+      GOARCH: amd64
+      GOOS: linux
+      APP_NAME: gatekeeper-api
+      APP_ENV: dev
+      APP_VERSION: v0.0.0
+      APP_SERVER: local
