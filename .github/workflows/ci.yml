@@ -14,27 +14,21 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
-    defaults:
-      run:
-        working-directory: src/golib
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
     - name: Run Tests
-      run: make test
+      run: make gatekeeper-test
   gatekeeper:
     name: gatekeeper
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
-    defaults:
-      run:
-        working-directory: src/gatekeeper
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
     - name: Run Tests
-      run: make test
+      run: make gatekeeper-test
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
     - name: Log in to the Container registry

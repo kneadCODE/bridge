@@ -20,7 +20,7 @@ type Config struct {
 
 // IsValid checks if the app is valid, else returns an error if it isn't
 func (c Config) IsValid() error {
-	if c.Name == "" || len(c.Name) > 10 {
+	if c.Name == "" || len(c.Name) > 25 {
 		return fmt.Errorf("invalid name: [%s], %w", c.Name, ErrInvalidConfig)
 	}
 
