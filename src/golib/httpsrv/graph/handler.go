@@ -1,4 +1,4 @@
-// Package gql contains GraphQL related code
+// Package graph contains GraphQL related code
 package graph
 
 import (

@@ -1,34 +1,33 @@
-// Package gql contains GraphQL related code
+// Package graph contains GraphQL related code
 package graph
 
 import (
 	"context"
+	"errors"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
-type gqlError struct {
-	*gqlerror.Error
-	cause error // ok to be nil
+// ConvertKnownError converts the known error into *gqlerror.Error
+func ConvertKnownError(ctx context.Context, code, message string) *gqlerror.Error {
+	return &gqlerror.Error{
+		Path:    graphql.GetPath(ctx),
+		Message: message,
+		Extensions: map[string]interface{}{
+			"code": code,
+		},
+	}
 }
 
-var (
-	_ error = &gqlError{}
-)
-
-// ConvertError converts the given error into graphql error
-func ConvertError(ctx context.Context, code, message string, err error) error {
-	return &gqlError{
-		Error: &gqlerror.Error{
-			Path:    graphql.GetPath(ctx),
-			Message: message,
-			Extensions: map[string]interface{}{
-				"code": code,
-			},
-		},
-		cause: err,
+// ConvertUnexpectError converts the given unexpected error into *gqlerror.Error
+func ConvertUnexpectError(ctx context.Context, err error) *gqlerror.Error {
+	gerr := gqlerror.WrapPath(graphql.GetPath(ctx), err)
+	gerr.Message = "An unknown error occurred"
+	gerr.Extensions = map[string]interface{}{
+		"code": "internal_error",
 	}
+	return gerr
 }
 
 func errorPresenter(isIntrospectionEnabled bool) graphql.ErrorPresenterFunc {
@@ -37,16 +36,21 @@ func errorPresenter(isIntrospectionEnabled bool) graphql.ErrorPresenterFunc {
 			return nil
 		}
 
-		gqlErr := graphql.DefaultErrorPresenter(ctx, err)
+		var gerr *gqlerror.Error
+		if !errors.As(err, &gerr) {
+			gerr = ConvertUnexpectError(ctx, err)
+		}
 
 		// Don't expose any schema-identifiable info when introspection is disabled
 		if !isIntrospectionEnabled {
-			gqlErr.Locations = nil
-			gqlErr.Path = nil
+			gerr.Locations = nil
+			gerr.Path = nil
 		}
 
-		// TODO: Add logging & alerting
+		if cause := gerr.Unwrap(); cause != nil {
+			// TODO: Add logging & alerting
+		}
 
-		return gqlErr
+		return gerr
 	}
 }

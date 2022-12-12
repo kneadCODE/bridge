@@ -1,3 +1,7 @@
 type Query {
-    noOp: Boolean!
+    noOp: Boolean
+
+    knownError: Boolean
+
+    unknownError: Boolean
 }

@@ -15,4 +15,4 @@
 vendor/
 
 # gqlgen generated files
-gqlgenerate.go
+gqlgenerated.go
