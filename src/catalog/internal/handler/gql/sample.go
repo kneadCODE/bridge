@@ -18,9 +18,9 @@ func (resolver) NoOp(context.Context) (*bool, error) {
 func (resolver) KnownError(ctx context.Context) (*bool, error) {
 	graphql.AddError(
 		ctx,
-		graph.ConvertKnownError(ctx, "invalid_qty", "Invalid qty given"),
+		graph.ConvertKnownError(ctx, graph.ErrCodeBadRequest, "invalid_qty", "Invalid qty given"),
 	)
-	return nil, graph.ConvertKnownError(ctx, "invalid_param", "Invalid param given")
+	return nil, graph.ConvertKnownError(ctx, graph.ErrCodeBadRequest, "invalid_param", "Invalid param given")
 }
 
 // UnknownError is a sample resolver

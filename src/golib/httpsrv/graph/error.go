@@ -9,13 +9,34 @@ import (
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
+// ErrorCode represents the code returned to the client
+type ErrorCode string
+
+// String returns the string representation of the ErrorCode
+func (e ErrorCode) String() string {
+	return string(e)
+}
+
+// Based on Apollo's spec - https://www.apollographql.com/docs/apollo-server/data/errors
+var (
+	// ErrCodeInternal means an internal error occurred
+	ErrCodeInternal = ErrorCode("INTERNAL_SERVER_ERROR")
+	// ErrCodeBadRequest means a bad request was sent
+	ErrCodeBadRequest = ErrorCode("BAD_REQUEST")
+	// ErrCodeUnauthenticated means the request was not authenticated
+	ErrCodeUnauthenticated = ErrorCode("UNAUTHENTICATED")
+	// ErrCodeForbidden means the request was not authorized
+	ErrCodeForbidden = ErrorCode("FORBIDDEN")
+)
+
 // ConvertKnownError converts the known error into *gqlerror.Error
-func ConvertKnownError(ctx context.Context, code, message string) *gqlerror.Error {
+func ConvertKnownError(ctx context.Context, code ErrorCode, cause, message string) *gqlerror.Error {
 	return &gqlerror.Error{
 		Path:    graphql.GetPath(ctx),
 		Message: message,
 		Extensions: map[string]interface{}{
-			"code": code,
+			"code":  code.String(),
+			"cause": cause,
 		},
 	}
 }
@@ -25,7 +46,7 @@ func ConvertUnexpectError(ctx context.Context, err error) *gqlerror.Error {
 	gerr := gqlerror.WrapPath(graphql.GetPath(ctx), err)
 	gerr.Message = "An unknown error occurred"
 	gerr.Extensions = map[string]interface{}{
-		"code": "internal_error",
+		"code": ErrCodeInternal,
 	}
 	return gerr
 }
@@ -47,7 +68,7 @@ func errorPresenter(isIntrospectionEnabled bool) graphql.ErrorPresenterFunc {
 			gerr.Path = nil
 		}
 
-		if cause := gerr.Unwrap(); cause != nil {
+		if underlyingErr := gerr.Unwrap(); underlyingErr != nil {
 			// TODO: Add logging & alerting
 		}
 
