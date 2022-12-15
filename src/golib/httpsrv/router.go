@@ -67,8 +67,17 @@ func baseMiddleware() func(handler http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
-
 			logger := slog.FromContext(r.Context())
+
+			defer func() {
+				if rcv := recover(); rcv != nil {
+					if err, ok := rcv.(error); ok {
+						logger.Error("PANIC RECOVERED", err)
+						return
+					}
+					logger.LogAttrs(slog.ErrorLevel, fmt.Sprintf("PANIC RECOVERED: [%+v]", rcv))
+				}
+			}()
 
 			logger = logger.With(
 				slog.String("http.req.method", r.Method),

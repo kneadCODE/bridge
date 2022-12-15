@@ -7,6 +7,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/vektah/gqlparser/v2/gqlerror"
+	"golang.org/x/exp/slog"
 )
 
 // ErrorCode represents the code returned to the client
@@ -72,7 +73,7 @@ func errorPresenter(isIntrospectionEnabled bool) graphql.ErrorPresenterFunc {
 		}
 
 		if underlyingErr := gerr.Unwrap(); underlyingErr != nil {
-			// TODO: Add logging & alerting
+			slog.FromContext(ctx).Error("ERROR", underlyingErr)
 		}
 
 		return gerr
