@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/pprof"
+	"runtime/debug"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -72,10 +73,13 @@ func baseMiddleware() func(handler http.Handler) http.Handler {
 			defer func() {
 				if rcv := recover(); rcv != nil {
 					if err, ok := rcv.(error); ok {
-						logger.Error("PANIC RECOVERED", err)
+						logger.Error(fmt.Sprintf("PANIC RECOVERED. Stack: [%s]", string(debug.Stack())), err)
 						return
 					}
-					logger.LogAttrs(slog.ErrorLevel, fmt.Sprintf("PANIC RECOVERED: [%+v]", rcv))
+					logger.LogAttrs(
+						slog.ErrorLevel,
+						fmt.Sprintf("PANIC RECOVERED: [%+v]. Stack: [%s]", rcv, string(debug.Stack())),
+					)
 				}
 			}()
 

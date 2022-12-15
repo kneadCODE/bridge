@@ -18,5 +18,6 @@ func Handler(schema graphql.ExecutableSchema, isIntrospectionEnabled bool) http.
 	if isIntrospectionEnabled {
 		srv.Use(extension.Introspection{})
 	}
+	srv.SetRecoverFunc(recoverFunc)
 	return srv
 }
