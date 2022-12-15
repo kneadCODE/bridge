@@ -19,23 +19,23 @@ func (e ErrorCode) String() string {
 
 // Based on Apollo's spec - https://www.apollographql.com/docs/apollo-server/data/errors
 var (
-	// ErrCodeInternal means an internal error occurred
-	ErrCodeInternal = ErrorCode("INTERNAL_SERVER_ERROR")
-	// ErrCodeBadRequest means a bad request was sent
-	ErrCodeBadRequest = ErrorCode("BAD_REQUEST")
-	// ErrCodeUnauthenticated means the request was not authenticated
-	ErrCodeUnauthenticated = ErrorCode("UNAUTHENTICATED")
-	// ErrCodeForbidden means the request was not authorized
-	ErrCodeForbidden = ErrorCode("FORBIDDEN")
+	// errCodeBadRequest means a bad request was sent
+	errCodeBadRequest = ErrorCode("BAD_REQUEST")
+	// errCodeInternal means an internal error occurred
+	errCodeInternal = ErrorCode("INTERNAL_SERVER_ERROR")
+	// errCodeUnauthenticated means the request was not authenticated
+	errCodeUnauthenticated = ErrorCode("UNAUTHENTICATED")
+	// errCodeForbidden means the request was not authorized
+	errCodeForbidden = ErrorCode("FORBIDDEN")
 )
 
-// ConvertKnownError converts the known error into *gqlerror.Error
-func ConvertKnownError(ctx context.Context, code ErrorCode, cause, message string) *gqlerror.Error {
+// ConvertBadRequestError converts the known error into *gqlerror.Error
+func ConvertBadRequestError(ctx context.Context, cause string, message string) *gqlerror.Error {
 	return &gqlerror.Error{
 		Path:    graphql.GetPath(ctx),
 		Message: message,
 		Extensions: map[string]interface{}{
-			"code":  code.String(),
+			"code":  errCodeBadRequest.String(),
 			"cause": cause,
 		},
 	}
@@ -43,10 +43,13 @@ func ConvertKnownError(ctx context.Context, code ErrorCode, cause, message strin
 
 // ConvertUnexpectError converts the given unexpected error into *gqlerror.Error
 func ConvertUnexpectError(ctx context.Context, err error) *gqlerror.Error {
+	if err == nil {
+		return nil
+	}
 	gerr := gqlerror.WrapPath(graphql.GetPath(ctx), err)
 	gerr.Message = "An unknown error occurred"
 	gerr.Extensions = map[string]interface{}{
-		"code": ErrCodeInternal,
+		"code": errCodeInternal.String(),
 	}
 	return gerr
 }
