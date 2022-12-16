@@ -22,7 +22,7 @@ func (Config) Run(ctx context.Context, services ...service) {
 	var wg sync.WaitGroup
 	wg.Add(len(services))
 
-	logger.LogAttrs(slog.InfoLevel, "Starting all services")
+	logger.LogAttrs(slog.LevelInfo, "Starting all services")
 
 	for i := range services {
 		svc := services[i]
@@ -38,19 +38,19 @@ func (Config) Run(ctx context.Context, services ...service) {
 
 	select {
 	case sig := <-exitSignalFunc():
-		logger.LogAttrs(slog.InfoLevel, fmt.Sprintf(
+		logger.LogAttrs(slog.LevelInfo, fmt.Sprintf(
 			"Exit signal: [%s] received. Terminating all services",
 			sig.String()),
 		)
 
 		cancel()
 	case <-ctx.Done():
-		logger.LogAttrs(slog.InfoLevel, "Context cancelled. Terminating all services")
+		logger.LogAttrs(slog.LevelInfo, "Context cancelled. Terminating all services")
 	}
 
 	wg.Wait()
 
-	logger.LogAttrs(slog.InfoLevel, "All services shut down. Exiting app.")
+	logger.LogAttrs(slog.LevelInfo, "All services shut down. Exiting app.")
 }
 
 // service represents an executable that is context aware and will return an error if encountered.

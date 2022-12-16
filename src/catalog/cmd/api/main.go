@@ -3,7 +3,9 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/kneadCODE/bridge/src/golib/app"
 	"github.com/kneadCODE/bridge/src/golib/httpsrv"
@@ -44,7 +46,12 @@ func main() {
 }
 
 func initServer(ctx context.Context) (*httpsrv.Server, error) {
-	srv, err := httpsrv.New(ctx, router())
+	portStr := os.Getenv("PORT")
+	port, err := strconv.Atoi(portStr)
+	if err != nil {
+		return nil, fmt.Errorf("invalid port: [%s], %w", portStr, err)
+	}
+	srv, err := httpsrv.New(ctx, router(), httpsrv.ServerPort(port))
 	if err != nil {
 		return nil, err
 	}

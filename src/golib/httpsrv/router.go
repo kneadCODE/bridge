@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/pprof"
+	"runtime/debug"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -67,8 +68,20 @@ func baseMiddleware() func(handler http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
-
 			logger := slog.FromContext(r.Context())
+
+			defer func() {
+				if rcv := recover(); rcv != nil {
+					if err, ok := rcv.(error); ok {
+						logger.Error(fmt.Sprintf("PANIC RECOVERED. Stack: [%s]", string(debug.Stack())), err)
+						return
+					}
+					logger.LogAttrs(
+						slog.LevelError,
+						fmt.Sprintf("PANIC RECOVERED: [%+v]. Stack: [%s]", rcv, string(debug.Stack())),
+					)
+				}
+			}()
 
 			logger = logger.With(
 				slog.String("http.req.method", r.Method),
@@ -81,7 +94,7 @@ func baseMiddleware() func(handler http.Handler) http.Handler {
 
 			rw := &respWriter{ResponseWriter: w}
 
-			logger.LogAttrs(slog.InfoLevel,
+			logger.LogAttrs(slog.LevelInfo,
 				"START HTTP Request",
 				slog.Int64("http.req.content-length", r.ContentLength),
 				slog.String("http.req.content-type", r.Header.Get("Content-Type")),
@@ -92,7 +105,7 @@ func baseMiddleware() func(handler http.Handler) http.Handler {
 			processStart := time.Now()
 			next.ServeHTTP(w, r)
 
-			logger.LogAttrs(slog.InfoLevel,
+			logger.LogAttrs(slog.LevelInfo,
 				"END HTTP Request",
 				slog.Time("http.resp.end", time.Now()),
 				slog.String("http.resp.duration", fmt.Sprintf("%dms", time.Since(start).Milliseconds())),
