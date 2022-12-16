@@ -12,7 +12,7 @@ import (
 
 func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout))
-	logger.LogAttrs(slog.InfoLevel, "Initializing app")
+	logger.LogAttrs(slog.LevelInfo, "Initializing app")
 
 	appCfg := app.Config{
 		Name:        os.Getenv("APP_NAME"),
@@ -35,7 +35,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	logger.LogAttrs(slog.InfoLevel, "App initialized")
+	logger.LogAttrs(slog.LevelInfo, "App initialized")
 
 	appCfg.Run(
 		ctx,

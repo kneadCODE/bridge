@@ -77,7 +77,7 @@ func baseMiddleware() func(handler http.Handler) http.Handler {
 						return
 					}
 					logger.LogAttrs(
-						slog.ErrorLevel,
+						slog.LevelError,
 						fmt.Sprintf("PANIC RECOVERED: [%+v]. Stack: [%s]", rcv, string(debug.Stack())),
 					)
 				}
@@ -94,7 +94,7 @@ func baseMiddleware() func(handler http.Handler) http.Handler {
 
 			rw := &respWriter{ResponseWriter: w}
 
-			logger.LogAttrs(slog.InfoLevel,
+			logger.LogAttrs(slog.LevelInfo,
 				"START HTTP Request",
 				slog.Int64("http.req.content-length", r.ContentLength),
 				slog.String("http.req.content-type", r.Header.Get("Content-Type")),
@@ -105,7 +105,7 @@ func baseMiddleware() func(handler http.Handler) http.Handler {
 			processStart := time.Now()
 			next.ServeHTTP(w, r)
 
-			logger.LogAttrs(slog.InfoLevel,
+			logger.LogAttrs(slog.LevelInfo,
 				"END HTTP Request",
 				slog.Time("http.resp.end", time.Now()),
 				slog.String("http.resp.duration", fmt.Sprintf("%dms", time.Since(start).Milliseconds())),

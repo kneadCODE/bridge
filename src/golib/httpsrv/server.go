@@ -49,7 +49,7 @@ func (s *Server) Start(ctx context.Context) error {
 	startErrChan := make(chan error, 1)
 
 	go func() {
-		logger.LogAttrs(slog.InfoLevel, fmt.Sprintf("Starting HTTP server on [%s]", s.srv.Addr))
+		logger.LogAttrs(slog.LevelInfo, fmt.Sprintf("Starting HTTP server on [%s]", s.srv.Addr))
 		startErrChan <- s.srv.ListenAndServe()
 	}()
 
@@ -70,18 +70,18 @@ func (s *Server) stop(logger *slog.Logger) error {
 	ctx, cancel := context.WithTimeout(context.Background(), s.gracefulShutdownTimeout) // Cannot rely on root context as that might have been cancelled.
 	defer cancel()
 
-	logger.LogAttrs(slog.InfoLevel, "Attempting HTTP server graceful shutdown")
+	logger.LogAttrs(slog.LevelInfo, "Attempting HTTP server graceful shutdown")
 	if err := s.srv.Shutdown(ctx); err != nil {
 		logger.Error("HTTP server graceful shutdown failed", err)
 
-		logger.LogAttrs(slog.InfoLevel, "Attempting HTTP server force shutdown")
+		logger.LogAttrs(slog.LevelInfo, "Attempting HTTP server force shutdown")
 		if err = s.srv.Close(); err != nil {
 			logger.Error("HTTP server graceful shutdown failed", err)
 			return err
 		}
 	}
 
-	logger.LogAttrs(slog.InfoLevel, "HTTP server shutdown complete")
+	logger.LogAttrs(slog.LevelInfo, "HTTP server shutdown complete")
 
 	return nil
 }

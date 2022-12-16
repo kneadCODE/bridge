@@ -38,7 +38,7 @@ func Handler(schema graphql.ExecutableSchema, isIntrospectionEnabled bool) http.
 		ctx = slog.NewContext(ctx, logger)
 
 		logger.LogAttrs(
-			slog.InfoLevel,
+			slog.LevelInfo,
 			fmt.Sprintf("START %s/%s", opCtx.Operation.Operation, opName),
 			slog.Time("gql.req.start", opCtx.Stats.OperationStart),
 		)
@@ -61,7 +61,7 @@ func Handler(schema graphql.ExecutableSchema, isIntrospectionEnabled bool) http.
 		logger.Info(fmt.Sprintf("Data: [%s]. Errors: [%s]", res.Data, res.Errors.Error())) // TODO: Add redaction
 
 		logger.LogAttrs(
-			slog.InfoLevel,
+			slog.LevelInfo,
 			fmt.Sprintf("END %s/%s", opCtx.Operation.Operation, opName),
 			slog.String(
 				"gql.resp.read_duration",

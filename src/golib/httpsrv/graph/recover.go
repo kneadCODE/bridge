@@ -23,7 +23,7 @@ func recoverFunc(ctx context.Context, rcv interface{}) error {
 		slog.FromContext(ctx).Error(fmt.Sprintf("PANIC RECOVERED. Stack: [%s]", string(debug.Stack())), err)
 	} else {
 		slog.FromContext(ctx).LogAttrs(
-			slog.ErrorLevel,
+			slog.LevelError,
 			fmt.Sprintf("PANIC RECOVERED: [%+v]. Stack: [%s]", rcv, string(debug.Stack())),
 		)
 	}
