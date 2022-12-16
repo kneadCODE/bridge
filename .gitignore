@@ -16,3 +16,4 @@ vendor/
 
 # gqlgen generated files
 gqlgenerated.go
+models_gen.go
