@@ -9,6 +9,7 @@ import (
 	"github.com/kneadCODE/bridge/src/golib/httpsrv/graph"
 )
 
+// NewHandler returns a new gqlgen handler as an http.Handler
 func NewHandler(isIntrospectionEnabled bool) http.Handler {
 	cfg := Config{
 		Resolvers: resolver{},

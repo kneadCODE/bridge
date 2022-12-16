@@ -1,3 +1,4 @@
+// Package graph contains GraphQL related code
 package graph
 
 import (

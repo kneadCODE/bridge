@@ -5,7 +5,10 @@
 package tools
 
 import (
+	// Adding this to support go generate
 	_ "github.com/99designs/gqlgen"
+	// Adding this to support go generate
 	_ "github.com/99designs/gqlgen/graphql"
+	// Adding this to support go generate
 	_ "github.com/99designs/gqlgen/graphql/introspection"
 )
