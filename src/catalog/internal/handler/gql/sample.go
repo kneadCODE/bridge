@@ -10,17 +10,18 @@ import (
 )
 
 // NoOp is a sample resolver
-func (resolver) NoOp(context.Context) (*bool, error) {
-	return nil, nil
+func (resolver) NoOp(ctx context.Context) (*Result, error) {
+	strPtr := "abc"
+	return &Result{Person: &Person{Name: &strPtr}}, nil
 }
 
 // KnownError is a sample resolver
 func (resolver) KnownError(ctx context.Context) (*bool, error) {
 	graphql.AddError(
 		ctx,
-		graph.ConvertKnownError(ctx, graph.ErrCodeBadRequest, "invalid_qty", "Invalid qty given"),
+		graph.ConvertBadRequestError(ctx, "invalid_qty", "Invalid qty given"),
 	)
-	return nil, graph.ConvertKnownError(ctx, graph.ErrCodeBadRequest, "invalid_param", "Invalid param given")
+	return nil, graph.ConvertBadRequestError(ctx, "invalid_param", "Invalid param given")
 }
 
 // UnknownError is a sample resolver

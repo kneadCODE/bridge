@@ -1,7 +1,15 @@
 type Query {
-    noOp: Boolean
+    noOp: Result
 
     knownError: Boolean
 
     unknownError: Boolean
+}
+
+type Result {
+    person: Person
+}
+
+type Person {
+    Name: String
 }
